@@ -61,7 +61,7 @@ If your theme doesn't render giscus automatically, create `components/YunComment
 
 ```vue
 <script setup lang="ts">
-import { GiscusClient } from 'valaxy-addon-giscus/components/GiscusClient.vue'
+import GiscusClient from 'valaxy-addon-giscus/components/GiscusClient.vue'
 </script>
 
 <template>
