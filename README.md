@@ -152,7 +152,7 @@ location / {
 多为仓库名写错或 Discussions 未开启，重新检查前置准备两步。
 
 **评论数据安全**
-评论即 GitHub Discussions，与代码同仓库存储，可通过仓库 Discussions 标签页管理（查看/回复/删除）。Giscus 还支持设置管理员暗号进入管理面板。
+评论即 GitHub Discussions，与代码同仓库存储，可通过仓库 Discussions 标签页管理（查看/回复/删除）。
 
 ## 许可证
 
