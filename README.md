@@ -1,76 +1,110 @@
 # valaxy-addon-giscus
 
-💬 [Valaxy](https://valaxy.site/) 的 [Giscus](https://giscus.app/) 评论系统插件 —— 评论由 **GitHub Discussions** 驱动。
+💬 给 [Valaxy](https://valaxy.site/) 博客加评论系统（Giscus），评论由 **GitHub Discussions** 驱动。
 
-**无需任何后端服务，零成本，零维护。** 评论数据直接存放在你的 GitHub 仓库 Discussions 里，评论框通过 giscus.app 的 iframe 加载，托管在哪个平台都能用。
-
-## 适用场景
-
-| 博客托管方式 | 是否支持 | 额外配置 |
-| --- | --- | --- |
-| **GitHub Pages**（推荐） | ✅ | **完全不需要**，部署即用 |
-| 自托管服务器（Nginx 等） | ✅ | 需配置 clean URL 和 HTTPS（见下文） |
-| 其他静态托管（Netlify/Vercel 等） | ✅ | 无需额外配置 |
-
-> 原理：Giscus 评论框是嵌入的第三方 iframe（giscus.app），评论读写走 GitHub API，**与博客部署在哪里无关**。唯一要求是博客页面能正常加载 giscus.app。
+**不用买服务器、不用注册新账号、不用花一分钱。** 你的读者在你的文章底下留言，留言会变成你 GitHub 仓库里的 Discussions 帖子，你随时可以在 GitHub 上管理。
 
 ---
 
-## 安装
+## 📋 开始之前
+
+请确认你已经满足以下条件（都满足再继续）：
+
+- [ ] 你的博客已经是 Valaxy 搭建的（用 `pnpm create valaxy` 创建的）
+- [ ] 你的博客代码已经推到 GitHub 上（有仓库地址，比如 `你的名字/你的博客仓库`）
+- [ ] 电脑上装了 Node.js（如果博客能本地跑起来，那一定装了）
+
+> 如果你的博客托管在 GitHub Pages（免费的那种），**全程只需要以下 7 步，不需要任何服务器配置**。
+
+---
+
+## 🚀 傻瓜式安装教程（照着做就行）
+
+### 第 1 步：安装插件
+
+打开你博客项目所在的文件夹（能看到 `valaxy.config.ts` 的那个），打开终端（命令行），输入：
 
 ```bash
-pnpm add valaxy-addon-giscus
-# 或从 GitHub 安装
 npm i github:CNskarin/valaxy-addon-giscus
 ```
 
-## 前置准备
+看到 `added 1 package` 之类的提示就成功了。
 
-1. 在 GitHub 仓库开启 **Discussions**：仓库 Settings → Features → Discussions → Enable。
-2. 获取仓库 ID 和讨论分类 ID（只需一次）：
+---
 
-```bash
-# 仓库 ID（node_id，以 R_kgDO... 开头）
-curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/repos/OWNER/REPO | grep node_id
+### 第 2 步：开启仓库的 Discussions（讨论区）
 
-# 分类 ID（以 DIC_... 开头）
-curl -H "Authorization: token YOUR_TOKEN" \
-  -d '{"query":"query { repository(owner: \"OWNER\", name: \"REPO\") { discussionCategories(first: 10) { nodes { id name } } } }"}' \
-  https://api.github.com/graphql
-```
+1. 用浏览器打开你的 GitHub 仓库页面（比如 `https://github.com/你的名字/你的博客仓库`）
+2. 点击顶部的 **Settings**（设置）
+3. 在左侧菜单找到 **Features**（功能）
+4. 勾选 **Discussions**，点击 **Enable**（开启）
 
-## 配置
+完成！现在你的仓库多了个 Discussions 标签。
 
-在 `valaxy.config.ts` 中：
+---
+
+### 第 3 步：获取两个"神秘代码"（网页操作，不用命令行）
+
+1. 打开 Giscus 官网：**https://giscus.app**
+2. 在 **Repository** 输入框里填你的仓库名，格式是 `你的名字/你的博客仓库`（比如 `CNskarin/valaxy-blog`）
+3. 点 **Search**（搜索）按钮。如果上一步 Discussions 没开，这里会提示错误，回去开好再试
+4. 往下滚动找到 **Discussion Category**，选一个分类（推荐 `General`）
+5. 页面底部会自动生成一段代码，里面藏着两个 ID：
+   - `data-repo-id="R_kgDO..."` —— 记下引号里的内容，这就是**仓库 ID**
+   - `data-category-id="DIC_..."` —— 记下引号里的内容，这就是**分类 ID**
+
+> 💡 这两个 ID 分别是 `R_kgDO...` 和 `DIC_...` 开头的长串字符，先复制到记事本里备用。
+
+---
+
+### 第 4 步：修改配置文件 `valaxy.config.ts`
+
+在博客项目根目录找到 **`valaxy.config.ts`** 文件，用记事本/VS Code 打开。
+
+**文件开头**（最上面 3 行）加上一行引入代码，改完是这样：
 
 ```ts
+import type { UserThemeConfig } from 'valaxy-theme-yun'
 import { defineValaxyConfig } from 'valaxy'
-import { addonGiscus } from 'valaxy-addon-giscus'
-
-export default defineValaxyConfig({
-  siteConfig: {
-    comment: {
-      enable: true, // 开启评论
-    },
-  },
-  addons: [
-    addonGiscus({
-      repo: 'OWNER/REPO',       // GitHub 仓库
-      repoId: 'R_kgDO...',      // 仓库 node_id
-      category: 'General',      // 讨论分类名称
-      categoryId: 'DIC_...',    // 讨论分类 ID
-      // —— 以下均为可选 ——
-      // mapping: 'pathname',    // 页面↔讨论的映射方式
-      // lang: 'zh-CN',          // 评论框语言
-      // theme: 'preferred_color_scheme', // 主题，或 { light, dark } 跟随站点亮暗
-    }),
-  ],
-})
+import { addonGiscus } from 'valaxy-addon-giscus'   // ← 新增这一行
 ```
 
-## 主题集成
+**文件中间**，找到 `theme: 'yun',` 这一行，在它下面加上：
 
-yun 主题已内置评论容器（`YunComment` 组件），启用 `siteConfig.comment.enable` 后会自动渲染。若你的主题未集成，在站点根目录创建 `components/YunComment.vue` 覆盖：
+```ts
+  addons: [
+    addonGiscus({
+      repo: '你的名字/你的博客仓库',     // ← 改成你自己的仓库
+      repoId: 'R_kgDO...',              // ← 第 3 步记下的仓库 ID
+      category: 'General',
+      categoryId: 'DIC_...',            // ← 第 3 步记下的分类 ID
+    }),
+  ],
+```
+
+**文件结尾**，找到 `siteConfig` 相关部分——如果你的配置里没有 `siteConfig`，就在最后一行 `})` 前面加上：
+
+```ts
+  siteConfig: {
+    comment: {
+      enable: true,
+    },
+  },
+```
+
+> 💡 如果文件里本来就有 `siteConfig: { comment: { enable: ... } }`，直接把 `enable` 改成 `true` 就行。
+
+---
+
+### 第 5 步：创建评论组件文件（如果用的是 yun 主题可跳过）
+
+> 大多数 Valaxy 博客用的是默认的 yun 主题，**这一步可以跳过**，第 4 步配置完直接到第 6 步。
+>
+> 只有当你用的是非官方主题（比如自己写的主题）时，才需要做这一步：
+
+1. 在博客项目根目录新建文件夹 **`components`**（如果已经存在就跳过）
+2. 在 `components` 文件夹里新建文件 **`YunComment.vue`**
+3. 把下面内容**整个复制**进去，保存：
 
 ```vue
 <script setup lang="ts">
@@ -86,80 +120,78 @@ import GiscusClient from 'valaxy-addon-giscus/components/GiscusClient.vue'
 </template>
 ```
 
-> ⚠️ `.vue` 组件是**默认导出**：`import GiscusClient from ...`，不要写成 `{ GiscusClient }`，否则 SSG 构建会报 "not exported" 错误。
+---
 
-## 部署场景
+### 第 6 步：推送到 GitHub，让网站重新构建
 
-### 场景一：GitHub Pages 托管（零配置）
+在你博客项目文件夹的终端里，依次输入：
 
-博客部署在 `username.github.io` 或自定义域名（CNAME 到 GitHub Pages）时：
+```bash
+git add -A
+git commit -m "添加 Giscus 评论"
+git push
+```
 
-- ✅ 评论组件开箱即用，无需任何服务器配置
-- ✅ 站内链接（`/posts/xxx` 无后缀）由 GitHub Pages 自动补 `.html` 匹配，URL 天然兼容
-- 直接 push 触发构建部署即可
+如果你的博客用的是 GitHub Actions 自动部署（GitHub Pages 默认就是），推送后**等 1~2 分钟**，网站会自动重新构建并上线。
 
-### 场景二：自托管服务器（Nginx 等）
+---
 
-博客部署在自己的 VPS/服务器时，评论本身**无需额外配置**（Giscus 走 iframe，与服务器无关），但需注意：
+### 第 7 步：验证评论是否生效
 
-**1. 必须启用 HTTPS**
+1. 打开你博客的任意一篇文章
+2. 拉到文章最底部
+3. 看到评论框（可以填昵称和内容、支持 GitHub 登录）就说明成功了！🎉
 
-浏览器会拦截 HTTPS 页面中的 HTTP 请求（混合内容），而 giscus.app 是 HTTPS。请用 Caddy / Certbot（Let's Encrypt）等为站点配置 HTTPS 证书。
+---
 
-**2. 配置 clean URL**
+## 🖥️ 博客部署在自己的服务器上？（Nginx 等）
 
-Valaxy 生成的站内链接是无后缀的（如 `/posts/hello-valaxy`），GitHub Pages 会自动补 `.html`，但 Nginx 不会，需要手动配置。Nginx 示例：
+如果你的博客不是托管在 GitHub Pages，而是自己的服务器，评论功能本身不用额外配置（评论框是浏览器直接加载的），但需要满足两个条件：
+
+**1. 网站必须有 HTTPS**（浏览器不允许 HTTPS 网页里加载 HTTP 内容）。用 Caddy 或 Certbot 申请免费证书。
+
+**2. 服务器要能正确处理无后缀的网址**（Valaxy 的文章链接是 `/posts/xxx` 这种没有 `.html` 的，GitHub Pages 会自动匹配，但 Nginx 不会）。在 Nginx 配置里加一行：
 
 ```nginx
-server {
-    listen 443 ssl;
-    server_name blog.example.com;
-
-    # SSL 证书配置（Caddy / Certbot）
-    ssl_certificate     /path/to/fullchain.pem;
-    ssl_certificate_key /path/to/privkey.pem;
-
-    root /var/www/blog/dist;
-    index index.html;
-
-    # 无后缀 URL → 补 .html（核心配置）
-    location / {
-        try_files $uri $uri.html $uri/index.html /404.html;
-    }
+location / {
+    try_files $uri $uri.html $uri/index.html /404.html;
 }
 ```
 
-**3. 服务器需要能访问 GitHub**
+---
 
-评论 iframe 由浏览器直接加载 giscus.app（不需要服务器转发），但构建时 `npm i` 会从 GitHub/npm 拉取依赖，国内服务器建议配置 npm 镜像：
+## ⚙️ 所有可配置项
 
-```bash
-npm config set registry https://registry.npmmirror.com
-```
-
-## 配置项
-
-| 配置项 | 类型 | 默认值 | 说明 |
+| 配置项 | 必填？ | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `repo` | `string` | — | GitHub 仓库 `owner/name` |
-| `repoId` | `string` | — | 仓库节点 ID（`R_kgDO...`） |
-| `category` | `string` | — | 讨论分类名称 |
-| `categoryId` | `string` | — | 讨论分类 ID（`DIC_...`） |
-| `mapping` | `string` | `'pathname'` | 页面↔讨论映射：`pathname` \| `url` \| `title` \| `og:title` \| `specific` \| `number` |
-| `term` | `string` | — | `specific`/`number` 映射方式下的匹配词 |
-| `strict` | `boolean` | `false` | 严格匹配 |
-| `reactionsEnabled` | `boolean` | `true` | 表情回应 |
-| `emitMetadata` | `boolean` | `false` | 输出元数据 |
-| `inputPosition` | `string` | `'top'` | 评论框位置：`top` \| `bottom` |
-| `theme` | `string \| { light, dark }` | `'preferred_color_scheme'` | Giscus 主题；传对象可跟随站点亮暗模式自动切换 |
-| `lang` | `string` | `'zh-CN'` | 评论框语言 |
-| `loading` | `string` | `'lazy'` | 加载方式：`lazy` \| `eager` |
+| `repo` | ✅ | — | 你的 GitHub 仓库，格式 `名字/仓库名` |
+| `repoId` | ✅ | — | 仓库 ID（`R_kgDO...`），giscus.app 获取 |
+| `category` | ✅ | — | 讨论分类名称（如 `General`） |
+| `categoryId` | ✅ | — | 分类 ID（`DIC_...`），giscus.app 获取 |
+| `mapping` | ❌ | `'pathname'` | 文章和讨论的对应方式，一般不用改 |
+| `lang` | ❌ | `'zh-CN'` | 评论框语言 |
+| `theme` | ❌ | `'preferred_color_scheme'` | 评论框主题；写 `{ light: 'light', dark: 'dark' }` 可跟随网站亮暗模式 |
+| `inputPosition` | ❌ | `'top'` | 评论输入框位置 |
+| `loading` | ❌ | `'lazy'` | 加载方式 |
 
-## 评论管理
+---
 
-- 所有评论就是仓库的 **Discussions**，在 GitHub 上直接查看/回复/删除
-- Giscus 支持隐藏管理入口：评论框右上角设置里可配置管理员暗号，输入后进入管理面板
+## ❓ 常见问题
 
-## 许可证
+**Q：评论框没出现？**
+A：先确认第 4 步的 `comment.enable` 是 `true`，且配置的 repoId/categoryId 没抄错。再确认网站已经重新构建部署完成（第 6 步）。
+
+**Q：提示 "Error: Unable to fetch" / 配置错误？**
+A：说明 Giscus 连不上你的仓库或 ID 不对。重新做第 2、3 步，确认仓库名没打错、Discussions 已开启。
+
+**Q：评论数据存在哪？会被删吗？**
+A：存在你 GitHub 仓库的 Discussions 里，跟你的代码一样安全，永远不会丢。管理评论 = 打开仓库的 Discussions 标签。
+
+**Q：本地预览能看到评论吗？**
+A：本地 `npm run dev` 也能看到评论框（localhost 可以加载 giscus），但评论会按 localhost 路径创建讨论，建议在正式网址上测试。
+
+---
+
+## 📜 许可证
 
 MIT
