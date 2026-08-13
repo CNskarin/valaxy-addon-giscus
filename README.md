@@ -1,35 +1,35 @@
 # valaxy-addon-giscus
 
-💬 [Giscus](https://giscus.app/) comment system addon for [Valaxy](https://valaxy.site/) — comments powered by [GitHub Discussions](https://docs.github.com/discussions).
+💬 [Valaxy](https://valaxy.site/) 的 [Giscus](https://giscus.app/) 评论系统插件 —— 评论由 [GitHub Discussions](https://docs.github.com/discussions) 驱动。
 
-No backend needed. Zero cost. Uses your GitHub repo's Discussions as the comment store.
+无需后端，零成本。评论数据直接存在你的 GitHub 仓库 Discussions 里。
 
-## Install
+## 安装
 
 ```bash
 pnpm add valaxy-addon-giscus
-# or from GitHub
+# 或从 GitHub 安装
 npm i github:CNskarin/valaxy-addon-giscus
 ```
 
-## Prerequisites
+## 前置准备
 
-1. Enable **Discussions** on your GitHub repo (Settings → Features → Discussions).
-2. Get your repo ID and category ID:
+1. 在 GitHub 仓库开启 **Discussions**（Settings → Features → Discussions）。
+2. 获取仓库 ID 和分类 ID：
 
 ```bash
-# repo ID (node_id, starts with R_kgDO...)
+# 仓库 ID（node_id，以 R_kgDO... 开头）
 curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/repos/OWNER/REPO | grep node_id
 
-# category ID (starts with DIC_...)
+# 分类 ID（以 DIC_... 开头）
 curl -H "Authorization: token YOUR_TOKEN" \
   -d '{"query":"query { repository(owner: \"OWNER\", name: \"REPO\") { discussionCategories(first: 10) { nodes { id name } } } }"}' \
   https://api.github.com/graphql
 ```
 
-## Usage
+## 使用
 
-In `valaxy.config.ts`:
+在 `valaxy.config.ts` 中：
 
 ```ts
 import { defineValaxyConfig } from 'valaxy'
@@ -47,17 +47,17 @@ export default defineValaxyConfig({
       repoId: 'R_kgDO...',
       category: 'General',
       categoryId: 'DIC_...',
-      // mapping: 'pathname',          // page-to-discussion mapping
-      // lang: 'zh-CN',                 // language
-      // theme: 'preferred_color_scheme', // or { light: 'light', dark: 'dark' }
+      // mapping: 'pathname',            // 页面与讨论的映射方式
+      // lang: 'zh-CN',                   // 语言
+      // theme: 'preferred_color_scheme', // 或 { light: 'light', dark: 'dark' } 跟随站点亮暗模式
     }),
   ],
 })
 ```
 
-## Theme integration
+## 主题集成
 
-If your theme doesn't render giscus automatically, create `components/YunComment.vue` (or your theme's comment component) in your site root to override it:
+如果主题没有自动渲染评论组件，在站点根目录创建 `components/YunComment.vue`（或对应主题的评论组件）来覆盖它：
 
 ```vue
 <script setup lang="ts">
@@ -73,24 +73,26 @@ import GiscusClient from 'valaxy-addon-giscus/components/GiscusClient.vue'
 </template>
 ```
 
-## Options
+> 注意：`.vue` 组件是默认导出，请使用 `import GiscusClient from ...`，不要写成 `{ GiscusClient }`。
 
-| Option | Type | Default | Description |
+## 配置项
+
+| 配置项 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `repo` | `string` | — | GitHub repo `owner/name` |
-| `repoId` | `string` | — | Repo node ID (`R_kgDO...`) |
-| `category` | `string` | — | Discussion category name |
-| `categoryId` | `string` | — | Discussion category ID (`DIC_...`) |
+| `repo` | `string` | — | GitHub 仓库 `owner/name` |
+| `repoId` | `string` | — | 仓库节点 ID（`R_kgDO...`） |
+| `category` | `string` | — | 讨论分类名称 |
+| `categoryId` | `string` | — | 讨论分类 ID（`DIC_...`） |
 | `mapping` | `string` | `'pathname'` | `pathname` \| `url` \| `title` \| `og:title` \| `specific` \| `number` |
-| `term` | `string` | — | Term for `specific`/`number` mapping |
-| `strict` | `boolean` | `false` | Strict matching |
-| `reactionsEnabled` | `boolean` | `true` | Reactions |
-| `emitMetadata` | `boolean` | `false` | Emit metadata |
-| `inputPosition` | `string` | `'top'` | `top` \| `bottom` |
-| `theme` | `string \| { light, dark }` | `'preferred_color_scheme'` | Giscus theme; object enables dark-mode switching |
-| `lang` | `string` | `'zh-CN'` | Language |
-| `loading` | `string` | `'lazy'` | `lazy` \| `eager` |
+| `term` | `string` | — | `specific`/`number` 映射方式下的匹配词 |
+| `strict` | `boolean` | `false` | 严格匹配 |
+| `reactionsEnabled` | `boolean` | `true` | 表情回应 |
+| `emitMetadata` | `boolean` | `false` | 输出元数据 |
+| `inputPosition` | `string` | `'top'` | `top` \| `bottom` 评论框位置 |
+| `theme` | `string \| { light, dark }` | `'preferred_color_scheme'` | Giscus 主题；传对象可跟随站点亮暗模式切换 |
+| `lang` | `string` | `'zh-CN'` | 语言 |
+| `loading` | `string` | `'lazy'` | `lazy` \| `eager` 加载方式 |
 
-## License
+## 许可证
 
 MIT
