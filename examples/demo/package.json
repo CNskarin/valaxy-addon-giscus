@@ -1,0 +1,22 @@
+{
+  "name": "valaxy-addon-giscus-demo",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "valaxy",
+    "build": "valaxy build --ssg"
+  },
+  "dependencies": {
+    "valaxy": "1.0.0-rc.5",
+    "valaxy-theme-yun": "1.0.0-rc.5",
+    "valaxy-addon-giscus": "file:../.."
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@parcel/watcher",
+      "vue-demi"
+    ]
+  }
+}

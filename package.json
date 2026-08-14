@@ -1,7 +1,7 @@
 {
   "name": "valaxy-addon-giscus",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Giscus comment system addon for Valaxy — GitHub Discussions powered comments",
   "keywords": [
     "valaxy",
@@ -10,6 +10,10 @@
     "comment"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CNskarin/valaxy-addon-giscus.git"
+  },
   "exports": {
     ".": {
       "types": "./index.d.ts",
